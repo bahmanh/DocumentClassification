@@ -12,6 +12,8 @@ import re
 
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 from plot_cm import plot_confusion_matrix
 from sklearn.metrics import confusion_matrix
