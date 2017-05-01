@@ -11,7 +11,7 @@ import re
 
 
 from nltk.corpus import stopwords
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
@@ -62,7 +62,7 @@ def preProcessing(features):
     return clean_titles, clean_wordlist
 
 def getDTMByTFIDF(features,nfeatures):
-    tfIdf_vectorizer = CountVectorizer(max_features=nfeatures)
+    tfIdf_vectorizer = TfidfVectorizer(max_features=nfeatures)
     dtm = tfIdf_vectorizer.fit_transform(features).toarray()
     return dtm,tfIdf_vectorizer
 
@@ -119,7 +119,7 @@ def crossValidate(document_term_matrix,labels,classifier="SVM",nfold=2):
         clf = linear_model.LogisticRegression(C=1e3)
         #clf = tree.DecisionTreeClassifier()
     if classifier == "RF":
-        clf = RandomForestClassifie0r()
+        clf = RandomForestClassifier()
     elif classifier == "NB":
         clf = GaussianNB()
     elif classifier == "SVM":
