@@ -11,7 +11,7 @@ import re
 
 
 from nltk.corpus import stopwords
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
@@ -62,7 +62,7 @@ def preProcessing(features):
     return clean_titles, clean_wordlist
 
 def getDTMByTFIDF(features,nfeatures):
-    tfIdf_vectorizer = TfidfVectorizer(max_features=nfeatures)
+    tfIdf_vectorizer = CountVectorizer(max_features=nfeatures)
     dtm = tfIdf_vectorizer.fit_transform(features).toarray()
     return dtm,tfIdf_vectorizer
 
@@ -114,12 +114,12 @@ def crossValidate(document_term_matrix,labels,classifier="SVM",nfold=2):
     recall = []
     fscore = []
     if classifier == "NN":
-       clf = MLPClassifier(solver='lbfgs', alpha=1e-5, random_state=1)   
+       clf = MLPClassifier(hidden_layer_sizes=(50,), activation='relu', solver='adam', alpha=1e-5, random_state=1)   
     elif classifier == "LR":
         clf = linear_model.LogisticRegression(C=1e3)
         #clf = tree.DecisionTreeClassifier()
     if classifier == "RF":
-        clf = RandomForestClassifier()
+        clf = RandomForestClassifie0r()
     elif classifier == "NB":
         clf = GaussianNB()
     elif classifier == "SVM":
@@ -188,6 +188,8 @@ plt.tight_layout()
 plt.savefig("imga.png")
 plt.figure()
 plt.plot(iterations, a_score)
+plt.xlabel('Iterations', fontsize=12)
+plt.ylabel('Accuracy', fontsize=12)
 
 #a_score = []
 #iterations = [i for i in range(0, 15)]
