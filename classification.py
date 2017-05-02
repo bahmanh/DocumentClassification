@@ -16,7 +16,6 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 from plot_cm import plot_confusion_matrix
-from sklearn.metrics import confusion_matrix
 
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
@@ -34,9 +33,10 @@ from sklearn.pipeline import make_pipeline
 from sklearn.feature_selection import SelectFromModel
 from sklearn.feature_selection import SelectKBest
 
+
 from sklearn.cross_validation import StratifiedKFold
 from sklearn.neighbors.nearest_centroid import NearestCentroid
-from sklearn.metrics import precision_recall_fscore_support, accuracy_score
+from sklearn.metrics import precision_recall_fscore_support, accuracy_score, classification_report, confusion_matrix
 
 import gensim, logging
 from gensim.models import Word2Vec
@@ -114,7 +114,7 @@ def crossValidate(document_term_matrix,labels,classifier="SVM",nfold=2):
     recall = []
     fscore = []
     if classifier == "NN":
-       clf = MLPClassifier(hidden_layer_sizes=(50,), activation='relu', solver='adam', alpha=1e-5, random_state=1)   
+       clf = MLPClassifier(hidden_layer_sizes=(50, 50), activation='logistic', solver='lbfgs', alpha=1, random_state=None)   
     elif classifier == "LR":
         clf = linear_model.LogisticRegression(C=1e3)
         #clf = tree.DecisionTreeClassifier()
@@ -128,20 +128,24 @@ def crossValidate(document_term_matrix,labels,classifier="SVM",nfold=2):
         clf = NearestCentroid()
     
     skf = StratifiedKFold(labels, n_folds=nfold)
-    
+    y_test_total = []
+    y_pred_total = []
+
     for train_index, test_index in skf:
         X_train, X_test = document_term_matrix[train_index], document_term_matrix[test_index]
         y_train, y_test = labels[train_index], labels[test_index]
+        y_test_total.extend(y_test.tolist())
         model = clf.fit(X_train, y_train)
         y_pred = model.predict(X_test)
+        y_pred_total.extend(y_pred.tolist())
         p,r,f,s = precision_recall_fscore_support(y_test, y_pred, average='weighted')
         print accuracy_score(y_test, y_pred)
         a_score.append(accuracy_score(y_test, y_pred))
         precision.append(p)
         recall.append(r)
         fscore.append(f)
-        
-    return y_test, y_pred, np.mean(precision),np.mean(recall),np.mean(fscore), np.mean(a_score)
+
+    return pd.Series(y_test_total), pd.Series(y_pred_total), np.mean(precision),np.mean(recall),np.mean(fscore), np.mean(a_score)
 
 titles, labels = loadData()
 processed_titles, processed_titles_wordlist = preProcessing(titles)
@@ -181,6 +185,9 @@ plt.figure()
     
 class_names = ['INFOCOM', 'ISCAS', 'SIGGRAPH', 'VLDB', 'WWW']
 plot_confusion_matrix(cnf_matrix, classes=class_names, title='Confusion Matrix')
+
+print "\nHere is the Classification Report:"
+print classification_report(y_test, y_pred, target_names=class_names)
 
 print "ChiSq Features:",precision, recall, fscore, accuracy
 
