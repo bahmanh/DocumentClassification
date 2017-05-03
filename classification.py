@@ -1,14 +1,8 @@
-def warn(*args, **kwargs):
-    pass
-import warnings
-warnings.warn = warn
-
 import pandas as pd 
 import sklearn
 import numpy as np
 import nltk
 import re
-
 
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -16,6 +10,7 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 from plot_cm import plot_confusion_matrix
+from plot_learning_curve import plot_learning_curve
 
 from sklearn.naive_bayes import GaussianNB
 from sklearn.ensemble import RandomForestClassifier
@@ -33,8 +28,7 @@ from sklearn.pipeline import make_pipeline
 from sklearn.feature_selection import SelectFromModel
 from sklearn.feature_selection import SelectKBest
 
-
-from sklearn.cross_validation import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold
 from sklearn.neighbors.nearest_centroid import NearestCentroid
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score, classification_report, confusion_matrix
 
@@ -108,7 +102,6 @@ def getAvgFeatureVecs(title, model, num_features):
 
 
 def crossValidate(document_term_matrix,labels,classifier="SVM",nfold=2):
-    from sklearn import tree
     clf = None
     precision = []
     recall = []
@@ -127,11 +120,11 @@ def crossValidate(document_term_matrix,labels,classifier="SVM",nfold=2):
     elif classifier == "KNN":
         clf = NearestCentroid()
     
-    skf = StratifiedKFold(labels, n_folds=nfold)
+    skf = StratifiedKFold(n_splits=nfold)
     y_test_total = []
     y_pred_total = []
 
-    for train_index, test_index in skf:
+    for train_index, test_index in skf.split(document_term_matrix, labels):
         X_train, X_test = document_term_matrix[train_index], document_term_matrix[test_index]
         y_train, y_test = labels[train_index], labels[test_index]
         y_test_total.extend(y_test.tolist())
@@ -144,6 +137,10 @@ def crossValidate(document_term_matrix,labels,classifier="SVM",nfold=2):
         precision.append(p)
         recall.append(r)
         fscore.append(f)
+        
+    plot_learning_curve(clf, "Learning Curves", document_term_matrix, labels, ylim=None, cv=skf, n_jobs=1, train_sizes=np.linspace(.1, 1.0, 5))
+
+    plt.savefig('lc.png')
 
     return pd.Series(y_test_total), pd.Series(y_pred_total), np.mean(precision),np.mean(recall),np.mean(fscore), np.mean(a_score)
 
@@ -216,5 +213,3 @@ plt.savefig("img.png")
 # Real life data. 
 
 # What kinda parameters should we visualize?
-
-# 
