@@ -107,7 +107,7 @@ def crossValidate(document_term_matrix,labels,classifier="SVM",nfold=2):
     recall = []
     fscore = []
     if classifier == "NN":
-       clf = MLPClassifier(hidden_layer_sizes=(50, 50), activation='logistic', solver='lbfgs', alpha=1, random_state=None)   
+       clf = MLPClassifier(hidden_layer_sizes=(50), activation='relu', solver='sgd', alpha=1e-2, random_state=None)   
     elif classifier == "LR":
         clf = linear_model.LogisticRegression(C=1e3)
         #clf = tree.DecisionTreeClassifier()
@@ -120,7 +120,7 @@ def crossValidate(document_term_matrix,labels,classifier="SVM",nfold=2):
     elif classifier == "KNN":
         clf = NearestCentroid()
     
-    skf = StratifiedKFold(n_splits=nfold)
+    skf = StratifiedKFold(n_splits=nfold, shuffle=True)
     y_test_total = []
     y_pred_total = []
 
@@ -137,7 +137,7 @@ def crossValidate(document_term_matrix,labels,classifier="SVM",nfold=2):
         precision.append(p)
         recall.append(r)
         fscore.append(f)
-        
+    
     plot_learning_curve(clf, "Learning Curves", document_term_matrix, labels, ylim=None, cv=skf, n_jobs=1, train_sizes=np.linspace(.1, 1.0, 5))
 
     plt.savefig('lc.png')
@@ -172,8 +172,8 @@ combinedFeatures = np.hstack([chisqDtm,wordVecs])
 
 
 
-iterations = [i for i in range(0, 15)]
-y_test, y_pred, precision, recall, fscore, accuracy = crossValidate(chisqDtm,labels,"SVM",15)
+iterations = [i for i in range(1, 16)]
+y_test, y_pred, precision, recall, fscore, accuracy = crossValidate(chisqDtm,labels,"NN",15)
 
 cnf_matrix = confusion_matrix(y_test, y_pred)
 np.set_printoptions(precision=2)
@@ -182,7 +182,7 @@ plt.figure()
     
 class_names = ['INFOCOM', 'ISCAS', 'SIGGRAPH', 'VLDB', 'WWW']
 plot_confusion_matrix(cnf_matrix, classes=class_names, title='Confusion Matrix')
-
+print a_score 
 print "\nHere is the Classification Report:"
 print classification_report(y_test, y_pred, target_names=class_names)
 
